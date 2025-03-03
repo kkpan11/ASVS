@@ -14,7 +14,7 @@ RUN apk add --update \
     bash \
     python3  \
     libressl-dev \
-    py3-pip \
+    pipx \
     curl \
     gnupg \
     unzip \
@@ -60,9 +60,10 @@ RUN rm -rf $PWD/source*
 
 FROM base_${WITH_CERT} as pandoc_base
 
-#install python depencies
-RUN pip install --upgrade pip
-RUN pip install setuptools dicttoxml2
+ENV PATH /root/.py-env:$PATH
+RUN python3 -m venv /root/.py-env --system-site-packages
+RUN /root/.py-env/bin/pip install --upgrade pip 
+RUN /root/.py-env/bin/pip install dicttoxml2 setuptools==69.0.3 
 
 #install Pandoc
 RUN adduser -s /bin/bash -g "pandoc" -D pandoc
@@ -87,14 +88,14 @@ RUN curl --output /tmp/lua-filters.tar.gz -L https://github.com/pandoc/lua-filte
     && rm /tmp/lua-filters.tar.gz
 
 FROM pandoc_base as tinytex_base
-#Install tinyTex
 
+#Install tinyTex
 # setup path
 ENV PATH=/home/pandoc/.TinyTeX/bin/x86_64-linuxmusl/:$PATH
 ENV TINY_TEX_VERSION=v0.45
 RUN curl -L "https://raw.githubusercontent.com/rstudio/tinytex/${TINY_TEX_VERSION}/tools/install-bin-unix.sh" | sed -e 's/wget -qO-/curl -sL/' -e "s#\(sh -s\)#sed 's/wget/curl -LO/' | \1#" -e 's/retry-connrefused/tries 20/' > "install-unx.sh" \
 	&& chmod +x install-unx.sh
-RUN bash -c "./install-unx.sh" && rm install-unx.sh
+RUN for i in 1 2 3 4 5; do bash -c "./install-unx.sh" && break || sleep 15; done && rm install-unx.sh
 
 FROM tinytex_base as latex_base
 
@@ -103,8 +104,8 @@ RUN /home/pandoc/.TinyTeX/bin/*/tlmgr path add
 
 # verify tlmgr version and add packages needed to build the documents
 RUN tlmgr --version 
-RUN tlmgr update -self
-RUN tlmgr install \
+RUN for i in 1 2 3 4 5; do tlmgr update --self && break || sleep 15; done 
+RUN for i in 1 2 3 4 5; do tlmgr install \
     xecjk \
     ctex \
     fancyhdr \
@@ -139,7 +140,7 @@ RUN tlmgr install \
     ulem \
     upquote \
     xurl \
-    zref 
+    zref && break || sleep 15; done
 
 FROM latex_base as work_layer
 #copy fonts from font_base

@@ -1,10 +1,11 @@
 name: Build Documents
 
 on:
+  workflow_dispatch:
+  pull_request:
   push:
     branches:
-      - 'master'
-      - 'main'
+      - master
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,8 +15,8 @@ jobs:
   filters:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: tony84727/changed-file-filter@v0.2.2
+    - uses: actions/checkout@v4.1.1
+    - uses: dorny/paths-filter@v3.0.0
       id: filter
       with:
         filters: |
@@ -34,8 +35,6 @@ jobs:
     if: needs.filters.outputs.docker == 'true'
     needs: filters
     uses: owasp/asvs/.github/workflows/build-and-publish-docker-image.yml@master
-    secrets:
-      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
 
   build-v4:
     if: ${{ always() && needs.filters.outputs.v4 == 'true' }}
@@ -43,16 +42,10 @@ jobs:
       - build-image
       - filters
     uses: owasp/asvs/.github/workflows/create-4.0-outputs.yml@master
-    secrets:
-      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-      GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
-
+    
   build-v5:
     if: ${{ always() && needs.filters.outputs.v5 == 'true' }}
     needs: 
       - build-image
       - filters
     uses: owasp/asvs/.github/workflows/create-5.0-outputs.yml@master
-    secrets:
-      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-      GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
