@@ -1,11 +1,12 @@
+# Testing 1
 PROJDIR=$(realpath $(CURDIR))
 BUILDDIR=build
 DISTDIR=dist
 TOOLSDIR=tools
 TEMPLATEDIR=templates
-TARGETNAME=OWASP_Application_Security_Verification_Standard-5_
+TARGETNAME=OWASP_Application_Security_Verification_Standard_5.0.0_
 
-LANGDIRS=en #fr
+LANGDIRS := $(shell if [ -n "$$SELECTED_LANGS" ]; then echo $$SELECTED_LANGS; else cat languages.txt; fi)
 # Add the language directories to the project directory
 # Create build and dist directories and language subdirectories
 BUILDDIR=$(PROJDIR)/build
@@ -29,6 +30,11 @@ JSON_FLAT_FILES := $(foreach lang, $(LANGDIRS), $(DISTDIR)/$(lang)/$(TARGETNAME)
 CSV_FILES := $(foreach lang, $(LANGDIRS), $(DISTDIR)/$(lang)/$(TARGETNAME)$(lang).csv)
 XML_FILES := $(foreach lang, $(LANGDIRS), $(DISTDIR)/$(lang)/$(TARGETNAME)$(lang).xml)
 
+JSON_LEGACY_FILES := $(foreach lang, $(LANGDIRS), $(DISTDIR)/$(lang)/$(TARGETNAME)$(lang).legacy.json)
+JSON_FLAT_LEGACY_FILES := $(foreach lang, $(LANGDIRS), $(DISTDIR)/$(lang)/$(TARGETNAME)$(lang).flat.legacy.json)
+CSV_LEGACY_FILES := $(foreach lang, $(LANGDIRS), $(DISTDIR)/$(lang)/$(TARGETNAME)$(lang).legacy.csv)
+XML_LEGACY_FILES := $(foreach lang, $(LANGDIRS), $(DISTDIR)/$(lang)/$(TARGETNAME)$(lang).legacy.xml)
+
 #TARGETS=$(addprefix $(DISTDIR)/,$(wildcard $(SOURCES)))
 TARGETS=$(addprefix $(BUILDDIRS)/,$(wildcard $(SOURCE_FILES)))
 EXPORT_TOOL=$(TOOLSDIR)/export.py
@@ -39,6 +45,8 @@ PANDOC_MD_FLAGS=-f gfm -s -t markdown
 PANDOC_PDF_FLAGS=-f markdown -s -t latex --pdf-engine=xelatex 
 
 PANDOC_TEX_FLAGS=-f markdown -s -t latex 
+
+PANDOC_RTL_TABLE_FILTER=--lua-filter=$(TOOLSDIR)/rtl_tables.lua
 
 PANDOC_DOCX_FLAGS= -s \
 				  -t docx \
@@ -54,9 +62,9 @@ PANDOC_ODT_FLAGS= -s \
 				  --columns 10000 \
 				  --reference-doc=./templates/reference.odt
 
-.PHONY: md pdf docx json json_flat cdx_json csv xml odt tex clean rm-build rm-dist
+.PHONY: md pdf docx json json_flat cdx_json csv xml odt tex clean rm-build rm-dist json_legacy json_flat_legacy csv_legacy xml_legacy
 
-all: $(TARGETS)	pdf docx json json_flat cdx_json csv xml rm-build
+all: $(TARGETS)	pdf docx json json_flat cdx_json csv xml json_legacy json_flat_legacy csv_legacy xml_legacy rm-build
 
 $(BUILDDIR):
 	mkdir -p $@
@@ -84,11 +92,11 @@ md: $(MD_FILES)
 	echo $(MD_FILES)
 
 $(PDF_FILES): $(BUILD_FOLDERS) $(TARGETS) $(DIST_FOLDERS) transform-md
-	pandoc $(PANDOC_PDF_FLAGS) --include-in-header=$(TEMPLATEDIR)/header-eisvogel.tex -o $@ --template $(TEMPLATEDIR)/eisvogel.tex $(subst dist,build,$(@D)/*.md) $(subst dist,,$(@D)/0x00-Header.yaml)
+	pandoc $(PANDOC_PDF_FLAGS) $(PANDOC_RTL_TABLE_FILTER) --include-in-header=$(TEMPLATEDIR)/header-eisvogel.tex -o $@ --template $(TEMPLATEDIR)/eisvogel.tex $(subst dist,build,$(@D)/*.md) $(subst dist,,$(@D)/0x00-Header.yaml)
 pdf: $(PDF_FILES)
 
 $(TEX_FILES): $(BUILD_FOLDERS) $(TARGETS) $(DIST_FOLDERS)
-	pandoc $(PANDOC_TEX_FLAGS) --include-in-header=$(TEMPLATEDIR)/header-eisvogel.tex -o $@ --template $(TEMPLATEDIR)/eisvogel.tex $(subst dist,build,$(@D)/*.md) $(subst dist,,$(@D)/0x00-Header.yaml)
+	pandoc $(PANDOC_TEX_FLAGS) $(PANDOC_RTL_TABLE_FILTER) --include-in-header=$(TEMPLATEDIR)/header-eisvogel.tex -o $@ --template $(TEMPLATEDIR)/eisvogel.tex $(subst dist,build,$(@D)/*.md) $(subst dist,,$(@D)/0x00-Header.yaml)
 tex: $(TEX_FILES)
 
 $(DOCX_FILES): $(BUILD_FOLDERS) $(TARGETS) $(DIST_FOLDERS)
@@ -118,6 +126,22 @@ csv: $(CSV_FILES)
 $(XML_FILES): $(SOURCE_FOLDERS) $(DIST_FOLDERS)
 	python3 $(EXPORT_TOOL) --format xml --language "$(subst dist,,$(@D))" > $@
 xml: $(XML_FILES)
+
+$(JSON_LEGACY_FILES): $(SOURCE_FOLDERS) $(DIST_FOLDERS)
+	python3 $(EXPORT_TOOL) --format json_legacy --language "$(subst dist,,$(@D))" > $@
+json_legacy: $(JSON_LEGACY_FILES)
+
+$(JSON_FLAT_LEGACY_FILES): $(SOURCE_FOLDERS) $(DIST_FOLDERS)
+	python3 $(EXPORT_TOOL) --format json_flat_legacy --language "$(subst dist,,$(@D))" > $@
+json_flat_legacy: $(JSON_FLAT_LEGACY_FILES)
+
+$(CSV_LEGACY_FILES): $(SOURCE_FOLDERS) $(DIST_FOLDERS)
+	python3 $(EXPORT_TOOL) --format csv_legacy --language "$(subst dist,,$(@D))" > $@
+csv_legacy: $(CSV_LEGACY_FILES)
+
+$(XML_LEGACY_FILES): $(SOURCE_FOLDERS) $(DIST_FOLDERS)
+	python3 $(EXPORT_TOOL) --format xml_legacy --language "$(subst dist,,$(@D))" > $@
+xml_legacy: $(XML_LEGACY_FILES)
 
 rm-build: $(BUILDDIR)
 	rm -rf $(BUILDDIR)

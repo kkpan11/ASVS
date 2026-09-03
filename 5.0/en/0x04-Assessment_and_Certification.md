@@ -8,11 +8,11 @@ Organizations may offer assurance services, provided they do not claim official 
 
 ## How to Verify ASVS Compliance
 
-The ASVS is deliberately not presciptive about exactly how to verify compliance at the level of a testing guide. However, it is important to highlight some key points.
+The ASVS is deliberately not prescriptive about exactly how to verify compliance at the level of a testing guide. However, it is important to highlight some key points.
 
 ### Verification reporting
 
-Traditional penetration testing reports issues “by exception,” only listing failures. However, an ASVS certification report should include scope, a summary of all requirements checked, the requirements where execptions were noted, and guidance on resolving issues. Some requirements may be non-applicable (e.g., session management in stateless APIs), and this must be noted in the report.
+Traditional penetration testing reports issues “by exception,” only listing failures. However, an ASVS certification report should include scope, a summary of all requirements checked, the requirements where exceptions were noted, and guidance on resolving issues. Some requirements may be non-applicable (e.g., session management in stateless APIs), and this must be noted in the report.
 
 ### Scope of Verification
 
@@ -32,7 +32,7 @@ The use of automation to verify ASVS requirements is a topic that is constantly 
 
 When automated security testing tools such as Dynamic and Static Application Security Testing tools (DAST and SAST) are correctly implemented in the build pipeline, they may be able to identify some security issues that should never exist. However, without careful configuration and tuning they will not provide the required coverage and the level of noise will prevent real security issues from being identified and mitigated.
 
-Whilst this may provide coverage of some of the more basic and straightforward technical requirements such as those relating to output encoding or sanitiation, it is critical to note that these tools will be unable entirely to verify many of the more complicated ASVS requirements or those that relate to business logic and access control.
+Whilst this may provide coverage of some of the more basic and straightforward technical requirements such as those relating to output encoding or sanitization, it is critical to note that these tools will be unable entirely to verify many of the more complicated ASVS requirements or those that relate to business logic and access control.
 
 For less straightforward requirements, it is likely that automation can still be utilized but application specific verifications will need to be written to achieve this. These may be similar to unit and integration tests that the organization may already be using. It may therefore be possible to use this existing test automation infrastructure to write these ASVS specific tests. Whilst doing this will require short term investment, the long term benefits being able to continually verify these ASVS requirements will be significant.
 
@@ -40,8 +40,8 @@ In summary, testable using automation != running an off the shelf tool.
 
 #### The Role of Penetration Testing
 
-Whilst L1 in version 4.0 was optimized for "black box" (no documentation and no source) testing to occur, even then we were clear that it is not an effective assurance activity and should be actively discouraged.
+Whilst L1 in version 4.0 was optimized for "black box" (no documentation and no source) testing to occur, even then the standard was clear that it is not an effective assurance activity and should be actively discouraged.
 
 Testing without access to necessary additional information is an inefficient and ineffective mechanism for security verification, as it misses out on the possibility of reviewing the source, identifying threats and missing controls, and performing a far more thorough test in a shorter timeframe.
 
-We strongly encourage replacing traditional penetration tests with documentation or source code-led (hybrid) penetration testing, with full access to the application developers and the application's documentation. This will certainly be necessary in order to verify many of the ASVS requirements.
+It is strongly encouraged to perform documentation or source code-led (hybrid) penetration testing, which have full access to the application developers and the application's documentation, rather than traditional penetration tests. This will certainly be necessary in order to verify many of the ASVS requirements.
